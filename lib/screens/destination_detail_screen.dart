@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import '../app_colors.dart';
+import '../widgets/premium_widgets.dart';
+import 'ai_assist_screen.dart';
+import 'audio_tour_screen.dart';
+import 'food_screen.dart';
+import 'game_screen.dart';
+import 'hidden_gems_screen.dart';
+import 'trip_scheduler_screen.dart';
 
-class DestinationDetailScreen extends StatefulWidget {
+class DestinationDetailScreen extends StatelessWidget {
   final String title;
   final String image;
-  
+
   const DestinationDetailScreen({
     super.key,
     required this.title,
@@ -11,501 +19,374 @@ class DestinationDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<DestinationDetailScreen> createState() => _DestinationDetailScreenState();
-}
-
-class _DestinationDetailScreenState extends State<DestinationDetailScreen> {
-  int _activeTabIndex = 0;
-  
-  final Map<String, dynamic> destination = {
-    'location': 'Manali, Himachal Pradesh',
-    'rating': 4.8,
-    'reviews': 342,
-    'price': '₹12,999',
-    'duration': '5 Days / 4 Nights',
-    'groupSize': '10-15 people',
-    'description': 'Experience the breathtaking beauty of the Himalayas with our carefully curated trek. Perfect for adventure seekers and nature lovers.',
-    'highlights': [
-      'Stunning mountain views',
-      'Professional guides',
-      'Camping under stars',
-      'Local cuisine experience'
-    ],
-    'meals': [
-      {
-        'name': 'Traditional Thali',
-        'image': 'https://images.unsplash.com/photo-1711153419402-336ee48f2138?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'type': 'Lunch & Dinner'
-      },
-      {
-        'name': 'Street Food',
-        'image': 'https://images.unsplash.com/photo-1764699486769-fc9a8b03130a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'type': 'Snacks'
-      },
-      {
-        'name': 'Local Cuisine',
-        'image': 'https://images.unsplash.com/photo-1542367592-8849eb950fd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'type': 'Breakfast'
-      }
-    ],
-    'itinerary': [
-      {'day': 1, 'title': 'Arrival & Acclimatization', 'description': 'Arrive at base camp, settle in, and get briefed about the trek'},
-      {'day': 2, 'title': 'Trek to Camp 1', 'description': 'Start your journey through pine forests and meadows'},
-      {'day': 3, 'title': 'Summit Day', 'description': 'Early morning summit attempt with packed breakfast'},
-      {'day': 4, 'title': 'Descent & Exploration', 'description': 'Trek back and explore local villages'},
-      {'day': 5, 'title': 'Departure', 'description': 'Morning departure after breakfast'}
-    ]
-  };
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              // Hero Image with Title
-              SliverAppBar(
-                expandedHeight: 300,
-                pinned: true,
-                backgroundColor: Colors.blue.shade600,
-                leading: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.network(
-                        widget.image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Container(color: Colors.grey.shade300),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.7),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 24,
-                        left: 20,
-                        right: 20,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on, color: Colors.white, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  destination['location'],
-                                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                                ),
-                                const SizedBox(width: 16),
-                                const Icon(Icons.star, color: Colors.amber, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${destination['rating']} (${destination['reviews']})',
-                                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              
-              // Tabs Sticky Header
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SliverAppBarDelegate(
-                  TabBarWidget(
-                    activeIndex: _activeTabIndex,
-                    onTabSelected: (index) {
-                      setState(() {
-                        _activeTabIndex = index;
-                      });
-                    },
-                  ),
-                ),
-              ),
-              
-              // Tab Content
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 100),
-                  child: _buildTabContent(),
-                ),
-              ),
-            ],
-          ),
-          
-          // Bottom CTA Fixed
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Colors.grey.shade200)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Starting from',
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                      ),
-                      Text(
-                        destination['price'],
-                        style: TextStyle(
-                          color: Colors.blue.shade600,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade600,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Book Now',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    final about =
+        '$title is presented as an AI-assisted exploration zone, not as a bookable package. ExploreMate helps travelers understand the place, discover hidden gems around it, play city missions, plan their day, find nearby food, and start contextual audio guidance.';
 
-  Widget _buildTabContent() {
-    if (_activeTabIndex == 0) {
-      // Overview
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'About This Trip',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            destination['description'],
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade600, height: 1.5),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(child: _buildInfoCard(Icons.calendar_today, 'Duration', destination['duration'])),
-              const SizedBox(width: 12),
-              Expanded(child: _buildInfoCard(Icons.people, 'Group Size', destination['groupSize'])),
-              const SizedBox(width: 12),
-              Expanded(child: _buildInfoCard(Icons.restaurant, 'Meals', 'Included')),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Highlights',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-          ),
-          const SizedBox(height: 12),
-          ...(destination['highlights'] as List).map((h) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 6),
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(color: Colors.blue.shade600, shape: BoxShape.circle),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    h as String,
-                    style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
-                  ),
-                ),
-              ],
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 360,
+            pinned: true,
+            backgroundColor: AppColors.primaryDeep,
+            leading: Padding(
+              padding: const EdgeInsets.all(8),
+              child: IconButton.filledTonal(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back_rounded),
+              ),
             ),
-          )).toList(),
-        ],
-      );
-    } else if (_activeTabIndex == 1) {
-      // Meals
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Included Meals',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-          ),
-          const SizedBox(height: 16),
-          ...(destination['meals'] as List).map((m) => Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 120,
-                  height: 120,
-                  child: Image.network(
-                    m['image'] as String,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        Container(color: Colors.grey.shade300),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Hero(
+                    tag: title,
+                    child: Image.network(
+                      image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(color: AppColors.cardBg),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(.08),
+                          AppColors.surface.withOpacity(.95),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 28,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const _SignalBadge(),
+                        const SizedBox(height: 12),
                         Text(
-                          m['name'] as String,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87),
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 34,
+                            fontWeight: FontWeight.w900,
+                            height: 1.05,
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          m['type'] as String,
-                          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                        const SizedBox(height: 10),
+                        const Wrap(
+                          spacing: 10,
+                          runSpacing: 8,
+                          children: [
+                            _MetaPill(Icons.location_on_rounded, 'AI mapped place'),
+                            _MetaPill(Icons.star_rounded, '4.8'),
+                            _MetaPill(Icons.people_alt_rounded, 'Low crowd route'),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          )).toList(),
-        ],
-      );
-    } else {
-      // Itinerary
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Day-by-Day Itinerary',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
           ),
-          const SizedBox(height: 16),
-          ...(destination['itinerary'] as List).map((day) => Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade600,
-                    shape: BoxShape.circle,
+          SliverToBoxAdapter(
+            child: Container(
+              color: AppColors.surface,
+              padding: const EdgeInsets.fromLTRB(18, 20, 18, 110),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Explore Options',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
                   ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'D${day['day']}',
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 12),
+                  GridView.count(
+                    crossAxisCount: MediaQuery.of(context).size.width > 640 ? 4 : 2,
+                    childAspectRatio: MediaQuery.of(context).size.width > 360 ? .98 : .90,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      Text(
-                        day['title'] as String,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87),
+                      _ActionCard(
+                        title: 'Hidden Gems',
+                        subtitle: 'Find secret nearby places',
+                        icon: Icons.diamond_rounded,
+                        color: AppColors.accent,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HiddenGemsScreen()),
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        day['description'] as String,
-                        style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4),
+                      _ActionCard(
+                        title: 'City Explorer',
+                        subtitle: 'Earn XP with place missions',
+                        icon: Icons.stars_rounded,
+                        color: AppColors.xpGold,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const GameScreen()),
+                        ),
+                      ),
+                      _ActionCard(
+                        title: 'AI Guide',
+                        subtitle: 'Ask about history, routes, timing',
+                        icon: Icons.psychology_rounded,
+                        color: const Color(0xFF8DB7FF),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AiAssistScreen()),
+                        ),
+                      ),
+                      _ActionCard(
+                        title: 'Audio Tour',
+                        subtitle: 'Start contextual narration',
+                        icon: Icons.graphic_eq_rounded,
+                        color: AppColors.secondary,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AudioTourScreen()),
+                        ),
+                      ),
+                      _ActionCard(
+                        title: 'Food Nearby',
+                        subtitle: 'Mood-based restaurants',
+                        icon: Icons.restaurant_rounded,
+                        color: const Color(0xFFFFB067),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const FoodScreen()),
+                        ),
+                      ),
+                      _ActionCard(
+                        title: 'Add To Plan',
+                        subtitle: 'Place it in your itinerary',
+                        icon: Icons.calendar_month_rounded,
+                        color: const Color(0xFFC78BFF),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const TripSchedulerScreen()),
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  GlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'About This Place',
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          about,
+                          style: TextStyle(color: adaptiveMutedColor(context, .72), height: 1.55),
+                        ),
+                        const SizedBox(height: 18),
+                        const Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _InfoChip('Best at sunset'),
+                            _InfoChip('Photo friendly'),
+                            _InfoChip('Hidden gems nearby'),
+                            _InfoChip('XP missions ready'),
+                            _InfoChip('Local food nearby'),
+                            _InfoChip('Audio story ready'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'AI Place Brief',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 12),
+                        _BriefRow(Icons.wb_sunny_rounded, 'Weather fit', 'Clear evening window, good visibility.'),
+                        _BriefRow(Icons.diamond_rounded, 'Hidden gem scan', 'AI can surface quieter nearby spots connected to this place.'),
+                        _BriefRow(Icons.stars_rounded, 'City explorer missions', 'Complete photo, food, audio, and discovery quests for XP.'),
+                        _BriefRow(Icons.route_rounded, 'Suggested route', 'Start with the scenic point, then food nearby.'),
+                        _BriefRow(Icons.notifications_active_rounded, 'Live alert', 'AI can notify you if crowd level changes.'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )).toList(),
-        ],
-      );
-    }
-  }
-
-  Widget _buildInfoCard(IconData icon, String title, String subtitle) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.blue.shade600, size: 28),
-          const SizedBox(height: 8),
-          Text(title, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-          const SizedBox(height: 2),
-          Text(subtitle, style: const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
+          ),
         ],
       ),
     );
   }
 }
 
-class TabBarWidget extends StatelessWidget {
-  final int activeIndex;
-  final Function(int) onTabSelected;
+class _ActionCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
 
-  const TabBarWidget({super.key, required this.activeIndex, required this.onTabSelected});
+  const _ActionCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 32),
+          const Spacer(),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            subtitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: adaptiveMutedColor(context, .62), fontSize: 11, height: 1.2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BriefRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+
+  const _BriefRow(this.icon, this.title, this.body);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.accent, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  body,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: adaptiveMutedColor(context, .62), fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SignalBadge extends StatelessWidget {
+  const _SignalBadge();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              _buildTab('Overview', 0),
-              _buildTab('Meals', 1),
-              _buildTab('Itinerary', 2),
-            ],
-          ),
-          Container(height: 1, color: Colors.grey.shade200),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.accent.withOpacity(.18),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.accent.withOpacity(.5)),
       ),
-    );
-  }
-
-  Widget _buildTab(String title, int index) {
-    final isActive = activeIndex == index;
-    return Expanded(
-      child: InkWell(
-        onTap: () => onTabSelected(index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isActive ? Colors.blue.shade600 : Colors.transparent,
-                width: 2,
-              ),
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            title,
-            style: TextStyle(
-              color: isActive ? Colors.blue.shade600 : Colors.grey.shade600,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-              fontSize: 15,
-            ),
-          ),
-        ),
+      child: const Text(
+        'AI exploration place',
+        style: TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.w900),
       ),
     );
   }
 }
 
-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  final Widget _child;
+class _MetaPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
 
-  _SliverAppBarDelegate(this._child);
-
-  @override
-  double get minExtent => 55.0;
+  const _MetaPill(this.icon, this.label);
 
   @override
-  double get maxExtent => 55.0;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return _child;
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(.34),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppColors.accent, size: 14),
+          const SizedBox(width: 5),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 130),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+class _InfoChip extends StatelessWidget {
+  final String label;
+
+  const _InfoChip(this.label);
 
   @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(label),
+      side: BorderSide(color: AppColors.accent.withOpacity(.25)),
+      backgroundColor: AppColors.accent.withOpacity(.10),
+    );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_colors.dart';
+import '../models/demo_data.dart';
+import '../widgets/premium_widgets.dart';
 
 class FoodScreen extends StatefulWidget {
   const FoodScreen({super.key});
@@ -9,177 +11,121 @@ class FoodScreen extends StatefulWidget {
 }
 
 class _FoodScreenState extends State<FoodScreen> {
-  int _selectedMood = 0;
-  final List<Map<String, String>> _moods = [
-    {'label': 'Adventurous', 'icon': '🔥'},
-    {'label': 'Comfort', 'icon': '😌'},
-    {'label': 'Energetic', 'icon': '⚡'},
-    {'label': 'Calm', 'icon': '🧘'},
-  ];
+  int mood = 0;
 
-  final List<Map<String, dynamic>> _foods = [
-    {'name': 'Spicy Chole Bhature', 'type': 'Punjabi', 'rating': '4.7', 'dist': '1.2 km', 'tag': 'Hot', 'icon': Icons.rice_bowl_rounded},
-    {'name': 'Szechuan Noodles', 'type': 'Chinese', 'rating': '4.5', 'dist': '2.8 km', 'tag': 'Spicy', 'icon': Icons.ramen_dining_rounded},
-    {'name': 'Peri Peri Bowl', 'type': 'Fusion', 'rating': '4.3', 'dist': '0.8 km', 'tag': 'New', 'icon': Icons.set_meal_rounded},
-    {'name': 'Street Tacos', 'type': 'Mexican', 'rating': '4.6', 'dist': '3.4 km', 'tag': 'Bold', 'icon': Icons.local_dining_rounded},
-    {'name': 'Masala Dosa', 'type': 'South Indian', 'rating': '4.8', 'dist': '0.5 km', 'tag': 'Classic', 'icon': Icons.breakfast_dining_rounded},
+  final foods = const [
+    ('Monsoon Ramen Bar', 'Hot bowls - 1.2 km - 4.8', Icons.ramen_dining_rounded),
+    ('Sunset Tapas Deck', 'Rooftop bites - 2.1 km - 4.7', Icons.local_bar_rounded),
+    ('Old Town Thali Lab', 'Comfort plates - 0.8 km - 4.9', Icons.rice_bowl_rounded),
+    ('Coastal Spice Cart', 'Street seafood - 1.9 km - 4.6', Icons.set_meal_rounded),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      body: Column(
+    final active = moods[mood];
+    return CinematicScaffold(
+      scroll: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
-          _buildMoodRow(),
-          _buildWeatherBadge(),
-          Expanded(child: _buildFoodList()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      color: AppColors.primaryDark,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 10,
-        left: 16, right: 16, bottom: 10,
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.restaurant_rounded, color: Colors.white, size: 22),
-          SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Food Explorer',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
-              Text('How are you feeling today?',
-                  style: TextStyle(color: Colors.white54, fontSize: 10)),
-            ],
+          const Text('Mood Food Explorer', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 6),
+          Text(
+            'AI blends your mood, weather, and local cravings.',
+            style: TextStyle(color: adaptiveMutedColor(context, .62)),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMoodRow() {
-    return SizedBox(
-      height: 52,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        itemCount: _moods.length,
-        itemBuilder: (_, i) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: GestureDetector(
-            onTap: () => setState(() => _selectedMood = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: i == _selectedMood ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: i == _selectedMood ? AppColors.primary : AppColors.borderColor,
-                  width: 0.5,
+          const SizedBox(height: 18),
+          GlassCard(
+            child: Row(
+              children: [
+                Icon(active['icon'] as IconData, color: active['color'] as Color, size: 38),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    '${active['label']} mode is active. Clear sky, 32 C, bright flavors recommended.',
+                    style: const TextStyle(fontWeight: FontWeight.w800, height: 1.4),
+                  ),
                 ),
-              ),
-              child: Text(
-                '${_moods[i]['icon']} ${_moods[i]['label']}',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: i == _selectedMood ? Colors.white : AppColors.primaryDark,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWeatherBadge() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
-      child: Row(
-        children: [
-          Container(
-            width: 7, height: 7,
-            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 7),
-          const Text('Sunny · 32°C · Bold flavours matched',
-              style: TextStyle(fontSize: 10, color: AppColors.primary)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFoodList() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(14, 4, 14, 4),
-          child: Text('RECOMMENDED FOR YOU',
-              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600,
-                  color: AppColors.primary, letterSpacing: 0.8)),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: _foods.length,
+          const SectionHeader(title: 'Choose Mood'),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: moods.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: MediaQuery.of(context).size.width > 640 ? 3 : 2,
+              childAspectRatio: MediaQuery.of(context).size.width > 360 ? 1.45 : 1.25,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
             itemBuilder: (_, i) {
-              final f = _foods[i];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.borderColor, width: 0.5),
-                ),
+              final m = moods[i];
+              final selected = i == mood;
+              return GlassCard(
+                onTap: () => setState(() => mood = i),
+                color: selected ? (m['color'] as Color).withOpacity(.24) : null,
                 child: Row(
                   children: [
-                    Container(
-                      width: 40, height: 40,
-                      decoration: BoxDecoration(
-                          color: AppColors.tileLight2,
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Icon(f['icon'] as IconData, color: AppColors.primary, size: 20),
-                    ),
+                    Icon(m['icon'] as IconData, color: m['color'] as Color),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(f['name'] as String,
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textDark)),
-                          const SizedBox(height: 2),
-                          Text('${f['type']} · ★ ${f['rating']} · ${f['dist']}',
-                              style: const TextStyle(fontSize: 10, color: AppColors.primary)),
-                        ],
+                      child: Text(
+                        m['label'] as String,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                          color: AppColors.tileLight1,
-                          borderRadius: BorderRadius.circular(6)),
-                      child: Text(f['tag'] as String,
-                          style: const TextStyle(fontSize: 9, color: AppColors.primaryDark, fontWeight: FontWeight.w500)),
                     ),
                   ],
                 ),
               );
             },
           ),
-        ),
-      ],
+          const SectionHeader(title: 'Recommended Restaurants'),
+          ...foods.map(
+            (f) => GlassCard(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: LinearGradient(colors: [(active['color'] as Color).withOpacity(.75), AppColors.primary]),
+                    ),
+                    child: Icon(f.$3, color: Colors.white),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          f.$1,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          f.$2,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: adaptiveMutedColor(context, .62), fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_rounded, color: AppColors.accent),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

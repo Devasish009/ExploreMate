@@ -1,10 +1,23 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../app_colors.dart';
+import '../models/demo_data.dart';
+import '../providers/app_state.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/premium_widgets.dart';
+import 'ai_assist_screen.dart';
+import 'audio_tour_screen.dart';
+import 'destination_detail_screen.dart';
 import 'explore_screen.dart';
+import 'food_screen.dart';
+import 'game_screen.dart';
+import 'hidden_gems_screen.dart';
+import 'profile_screen.dart';
+import 'smart_travel_tools_screen.dart';
 import 'trip_scheduler_screen.dart';
 import 'translator_screen.dart';
-import 'destination_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,50 +27,207 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  int currentIndex = 0;
+  Offset? chatButtonPosition;
+  final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  final List<Widget> _screens = const [
-    _HomeTab(),
-    ExploreScreen(),
-    TripSchedulerScreen(),
-    TranslatorScreen(),
+  late final pages = <Widget>[
+    _HomeTab(openDrawer: () => scaffoldKey.currentState?.openDrawer()),
+    const ExploreScreen(),
+    const TripSchedulerScreen(),
+    const TranslatorScreen(),
+    const ProfileScreen(),
   ];
 
-  final List<BottomNavigationBarItem> _navItems = const [
-    BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-    BottomNavigationBarItem(icon: Icon(Icons.search_rounded), label: 'Search'),
-    BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Schedule'),
-    BottomNavigationBarItem(icon: Icon(Icons.language_rounded), label: 'Translate'),
+  final nav = const [
+    (Icons.home_rounded, 'Home'),
+    (Icons.travel_explore_rounded, 'Explore'),
+    (Icons.calendar_month_rounded, 'Trips'),
+    (Icons.translate_rounded, 'Translator'),
+    (Icons.person_rounded, 'Profile'),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final inactiveNavColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white54
+        : AppColors.textMid.withOpacity(.68);
     return Scaffold(
-      key: _scaffoldKey,
+      key: scaffoldKey,
+      extendBody: true,
       drawer: const AppDrawer(),
-      body: _screens[_currentIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.10),
-              blurRadius: 12,
-              offset: const Offset(0, -3),
-            ),
-          ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          const buttonSize = 64.0;
+          final topMin = MediaQuery.of(context).padding.top + 12;
+          final maxX = math.max(12.0, constraints.maxWidth - buttonSize - 12);
+          final maxY = math.max(topMin, constraints.maxHeight - buttonSize - 128);
+          final position = chatButtonPosition ??
+              Offset(
+                maxX,
+                maxY,
+              );
+
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 360),
+                  child: KeyedSubtree(key: ValueKey(currentIndex), child: pages[currentIndex]),
+                ),
+              ),
+              Positioned(
+                left: position.dx.clamp(12.0, maxX).toDouble(),
+                top: position.dy.clamp(topMin, maxY).toDouble(),
+                child: _FloatingAiChatButton(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AiAssistScreen()),
+                  ),
+                  onDrag: (delta) {
+                    setState(() {
+                      final current = chatButtonPosition ?? position;
+                      chatButtonPosition = Offset(
+                        (current.dx + delta.dx).clamp(12.0, maxX).toDouble(),
+                        (current.dy + delta.dy).clamp(topMin, maxY).toDouble(),
+                      );
+                    });
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        child: GlassCard(
+          radius: 28,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(nav.length, (i) {
+              final selected = currentIndex == i;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => currentIndex = i),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 240),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: selected ? AppColors.accent.withOpacity(.18) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(nav[i].$1, color: selected ? AppColors.accent : inactiveNavColor, size: 21),
+                        const SizedBox(height: 3),
+                        Text(
+                          nav[i].$2,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: selected ? AppColors.accent : inactiveNavColor,
+                            fontSize: 10,
+                            fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) => setState(() => _currentIndex = i),
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: Colors.grey.shade600,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          items: _navItems,
+      ),
+    );
+  }
+}
+
+class _FloatingAiChatButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final ValueChanged<Offset> onDrag;
+
+  const _FloatingAiChatButton({
+    required this.onTap,
+    required this.onDrag,
+  });
+
+  @override
+  State<_FloatingAiChatButton> createState() => _FloatingAiChatButtonState();
+}
+
+class _FloatingAiChatButtonState extends State<_FloatingAiChatButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (_, child) => Transform.translate(
+        offset: Offset(0, -4 * controller.value),
+        child: child,
+      ),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onPanUpdate: (details) => widget.onDrag(details.delta),
+        child: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: AppColors.cyanGradient,
+            border: Border.all(color: Colors.white.withOpacity(.34), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.accent.withOpacity(.38),
+                blurRadius: 28,
+                spreadRadius: 2,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Icon(
+                Icons.smart_toy_rounded,
+                color: AppColors.primaryDeep,
+                size: 31,
+              ),
+              Positioned(
+                right: 13,
+                top: 13,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primaryDeep, width: 1.5),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -65,224 +235,248 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _HomeTab extends StatelessWidget {
-  const _HomeTab();
+  final VoidCallback openDrawer;
+  const _HomeTab({required this.openDrawer});
 
   @override
   Widget build(BuildContext context) {
-    final destinations = [
-      {
-        'id': 1,
-        'name': 'Himachal Pradesh',
-        'language': 'Hindi, Pahari',
-        'image': 'https://images.unsplash.com/photo-1765574781646-b3f20b29e2e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'topPlaces': ['Manali', 'Shimla', 'Dharamshala']
-      },
-      {
-        'id': 2,
-        'name': 'Uttarakhand',
-        'language': 'Hindi, Garhwali, Kumaoni',
-        'image': 'https://images.unsplash.com/photo-1760989110638-dfcfe8f540e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'topPlaces': ['Nainital', 'Mussoorie', 'Rishikesh']
-      },
-      {
-        'id': 3,
-        'name': 'Jammu & Kashmir',
-        'language': 'Urdu, Kashmiri, Dogri',
-        'image': 'https://images.unsplash.com/photo-1768490219479-7fc9e456accd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'topPlaces': ['Srinagar', 'Gulmarg', 'Pahalgam']
-      },
-      {
-        'id': 4,
-        'name': 'Sikkim',
-        'language': 'Nepali, Sikkimese, Hindi',
-        'image': 'https://images.unsplash.com/photo-1775459408227-981df1b4afe7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'topPlaces': ['Gangtok', 'Pelling', 'Lachung']
-      }
-    ];
-
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.person, color: Colors.black87),
-          onPressed: () {
-            // Profile action
-          },
-        ),
-        title: const Text(
-          'ExploreMate',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(
-            color: Colors.grey.shade200,
-            height: 1.0,
-          ),
-        ),
-      ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: destinations.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          final dest = destinations[index];
-          final topPlaces = dest['topPlaces'] as List<String>;
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade100),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+    return CinematicScaffold(
+      scroll: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton.filledTonal(onPressed: openDrawer, icon: const Icon(Icons.menu_rounded)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Good evening, Arjun', style: TextStyle(color: adaptiveMutedColor(context, .72), fontSize: 12)),
+                    const Text('Where shall AI take you?', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
+                  ],
                 ),
-              ],
-            ),
-            clipBehavior: Clip.antiAlias,
+              ),
+              IconButton.filledTonal(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+                icon: const Icon(Icons.notifications_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          GlassCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image with Gradient Overlay
-                SizedBox(
-                  height: 220,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.network(
-                        dest['image'] as String,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Container(color: Colors.grey.shade300),
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.cyanGradient),
+                      child: const Icon(Icons.psychology_rounded, color: AppColors.primaryDeep),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'I found 7 cinematic routes near you based on weather, crowd energy, and your food mood.',
+                        style: TextStyle(height: 1.4, fontWeight: FontWeight.w600),
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.6),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 16,
-                        left: 16,
-                        right: 16,
-                        child: Text(
-                          dest['name'] as String,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                // Details Section
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Language',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        dest['language'] as String,
-                        style: const TextStyle(
-                          color: Colors.black87,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Top 3 Places',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8.0,
-                        runSpacing: 8.0,
-                        children: topPlaces.map((place) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.location_on, size: 14, color: Colors.blue.shade700),
-                                const SizedBox(width: 4),
-                                Text(
-                                  place,
-                                  style: TextStyle(
-                                    color: Colors.blue.shade700,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DestinationDetailScreen(
-                                  title: dest['name'] as String,
-                                  image: dest['image'] as String,
-                                ),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade600,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          icon: const Text('Explore'),
-                          label: const Icon(Icons.arrow_forward, size: 18),
-                        ),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 16),
+                AnimatedSearchBar(
+                  hint: 'Search destinations, food, hidden gems',
+                  onMicTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiAssistScreen())),
                 ),
               ],
             ),
-          );
-        },
+          ),
+          const SizedBox(height: 16),
+          const WeatherWidget(),
+          const SectionHeader(title: 'Recommended For You', action: 'See all'),
+          SizedBox(
+            height: 330,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: destinations.length,
+              itemBuilder: (_, i) => DestinationCard(
+                item: destinations[i],
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DestinationDetailScreen(
+                      title: destinations[i]['name'] as String,
+                      image: destinations[i]['image'] as String,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SectionHeader(title: 'AI Exploration Modes'),
+          GridView.count(
+            crossAxisCount: MediaQuery.of(context).size.width > 640 ? 4 : 2,
+            childAspectRatio: MediaQuery.of(context).size.width > 360 ? 1.08 : .98,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _ModeCard('Hidden Gems', Icons.diamond_rounded, AppColors.accent, const HiddenGemsScreen()),
+              _ModeCard('Food Mood', Icons.restaurant_rounded, AppColors.secondary, const FoodScreen()),
+              _ModeCard('City Game', Icons.stars_rounded, AppColors.xpGold, const GameScreen()),
+              _ModeCard('AI Guide', Icons.graphic_eq_rounded, const Color(0xFF8DB7FF), const AudioTourScreen()),
+            ],
+          ),
+          const SectionHeader(title: 'Smart Travel Tools'),
+          GridView.count(
+            crossAxisCount: MediaQuery.of(context).size.width > 640 ? 4 : 2,
+            childAspectRatio: MediaQuery.of(context).size.width > 360 ? 1.08 : .98,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: const [
+              _ModeCard('AI Memory', Icons.memory_rounded, AppColors.accent, SmartTravelToolsScreen()),
+              _ModeCard('Offline Mode', Icons.download_for_offline_rounded, Color(0xFF8DB7FF), SmartTravelToolsScreen()),
+              _ModeCard('Safety AI', Icons.health_and_safety_rounded, AppColors.success, SmartTravelToolsScreen()),
+              _ModeCard('Day Optimizer', Icons.auto_awesome_rounded, AppColors.secondary, SmartTravelToolsScreen()),
+              _ModeCard('AR Scanner', Icons.view_in_ar_rounded, Color(0xFFC78BFF), SmartTravelToolsScreen()),
+              _ModeCard('Culture Cards', Icons.diversity_3_rounded, AppColors.xpGold, SmartTravelToolsScreen()),
+              _ModeCard('Expense Split', Icons.payments_rounded, Color(0xFF57C7FF), SmartTravelToolsScreen()),
+              _ModeCard('Photo Journal', Icons.auto_stories_rounded, Color(0xFFFF8FB3), SmartTravelToolsScreen()),
+              _ModeCard('Emergency SOS', Icons.sos_rounded, AppColors.danger, SmartTravelToolsScreen()),
+              _ModeCard('Pro Dashboard', Icons.workspace_premium_rounded, AppColors.accentLight, SmartTravelToolsScreen()),
+            ],
+          ),
+          const SectionHeader(title: 'Nearby Hidden Gems'),
+          ...hiddenGems.map((gem) => GlassCard(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(12),
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(gem['image'] as String, width: 68, height: 68, fit: BoxFit.cover),
+                  ),
+                  title: Text(
+                    gem['name'] as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  subtitle: Text(
+                    '${gem['type']} - ${gem['distance']}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: adaptiveMutedColor(context, .62)),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_rounded, color: AppColors.accent),
+                ),
+              )),
+          Consumer<AppState>(
+            builder: (_, state, __) => XpProgressWidget(xp: state.xp, level: state.level),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final Widget screen;
+
+  const _ModeCard(this.title, this.icon, this.color, this.screen);
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => screen)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 30),
+          const Spacer(),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Open module',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: adaptiveMutedColor(context, .56), fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class NotificationsScreen extends StatelessWidget {
+  const NotificationsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      ('Mission update', 'You are one hidden gem away from Gem Hunter II.', Icons.flag_rounded, AppColors.xpGold),
+      ('Weather alert', 'Light rain expected at 7 PM near Beach Road.', Icons.cloud_rounded, const Color(0xFF70B7FF)),
+      ('Nearby place', 'A low-crowd viewpoint opened 1.4 km from you.', Icons.place_rounded, AppColors.accent),
+      ('AI suggestion', 'Try the heritage-night route before dinner.', Icons.psychology_rounded, AppColors.secondary),
+    ];
+    return CinematicScaffold(
+      scroll: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton.filledTonal(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back_rounded)),
+              const SizedBox(width: 8),
+              const Text('Notifications', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
+            ],
+          ),
+          const SizedBox(height: 18),
+          ...items.map((n) => GlassCard(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Icon(n.$3, color: n.$4, size: 28),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            n.$1,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            n.$2,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: adaptiveMutedColor(context, .62), fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+        ],
       ),
     );
   }

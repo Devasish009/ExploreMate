@@ -1,258 +1,302 @@
 import 'package:flutter/material.dart';
+import '../app_colors.dart';
+import '../widgets/premium_widgets.dart';
 
-class TranslatorScreen extends StatelessWidget {
+class TranslatorScreen extends StatefulWidget {
   const TranslatorScreen({super.key});
 
   @override
+  State<TranslatorScreen> createState() => _TranslatorScreenState();
+}
+
+class _TranslatorScreenState extends State<TranslatorScreen> {
+  String from = 'English';
+  String to = 'Hindi';
+  final languages = const [
+    'Afrikaans',
+    'Albanian',
+    'Amharic',
+    'Arabic',
+    'Armenian',
+    'Assamese',
+    'Aymara',
+    'Azerbaijani',
+    'Bambara',
+    'Basque',
+    'Belarusian',
+    'Bengali',
+    'Bhojpuri',
+    'Bosnian',
+    'Bulgarian',
+    'Catalan',
+    'Cebuano',
+    'Chinese Simplified',
+    'Chinese Traditional',
+    'Corsican',
+    'Croatian',
+    'Czech',
+    'Danish',
+    'Dogri',
+    'Dutch',
+    'English',
+    'Esperanto',
+    'Estonian',
+    'Ewe',
+    'Filipino',
+    'Finnish',
+    'French',
+    'Frisian',
+    'Galician',
+    'Georgian',
+    'German',
+    'Greek',
+    'Guarani',
+    'Gujarati',
+    'Haitian Creole',
+    'Hausa',
+    'Hawaiian',
+    'Hebrew',
+    'Hindi',
+    'Hmong',
+    'Hungarian',
+    'Icelandic',
+    'Igbo',
+    'Ilocano',
+    'Indonesian',
+    'Irish',
+    'Italian',
+    'Japanese',
+    'Javanese',
+    'Kannada',
+    'Kazakh',
+    'Khmer',
+    'Kinyarwanda',
+    'Konkani',
+    'Korean',
+    'Krio',
+    'Kurdish Kurmanji',
+    'Kurdish Sorani',
+    'Kyrgyz',
+    'Lao',
+    'Latin',
+    'Latvian',
+    'Lingala',
+    'Lithuanian',
+    'Luganda',
+    'Luxembourgish',
+    'Macedonian',
+    'Maithili',
+    'Malagasy',
+    'Malay',
+    'Malayalam',
+    'Maltese',
+    'Manipuri',
+    'Maori',
+    'Marathi',
+    'Meiteilon',
+    'Mizo',
+    'Mongolian',
+    'Myanmar Burmese',
+    'Nepali',
+    'Norwegian',
+    'Nyanja',
+    'Odia',
+    'Oromo',
+    'Pashto',
+    'Persian',
+    'Polish',
+    'Portuguese',
+    'Punjabi',
+    'Quechua',
+    'Romanian',
+    'Russian',
+    'Samoan',
+    'Sanskrit',
+    'Scots Gaelic',
+    'Sepedi',
+    'Serbian',
+    'Sesotho',
+    'Shona',
+    'Sindhi',
+    'Sinhala',
+    'Slovak',
+    'Slovenian',
+    'Somali',
+    'Spanish',
+    'Sundanese',
+    'Swahili',
+    'Swedish',
+    'Tagalog',
+    'Tajik',
+    'Tamil',
+    'Tatar',
+    'Telugu',
+    'Thai',
+    'Tigrinya',
+    'Tsonga',
+    'Turkish',
+    'Turkmen',
+    'Twi',
+    'Ukrainian',
+    'Urdu',
+    'Uyghur',
+    'Uzbek',
+    'Vietnamese',
+    'Welsh',
+    'Xhosa',
+    'Yiddish',
+    'Yoruba',
+    'Zulu',
+  ];
+
+  @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> savedTrips = [
-      {
-        'id': 1,
-        'name': 'Himalayan Trek',
-        'image': 'https://images.unsplash.com/photo-1765574781646-b3f20b29e2e8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'date': 'Jun 15-20, 2026'
-      },
-      {
-        'id': 2,
-        'name': 'Valley of Flowers',
-        'image': 'https://images.unsplash.com/photo-1760989110638-dfcfe8f540e0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-        'date': 'Jul 10-17, 2026'
-      }
-    ];
-
-    final List<Map<String, dynamic>> menuItems = [
-      {'icon': Icons.confirmation_num, 'label': 'My Bookings', 'count': 3},
-      {'icon': Icons.favorite, 'label': 'Saved Trips', 'count': 5},
-      {'icon': Icons.settings, 'label': 'Settings'},
-      {'icon': Icons.logout, 'label': 'Logout', 'variant': 'danger'}
-    ];
-
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Profile Header
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade600, Colors.blue.shade800],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+    return CinematicScaffold(
+      scroll: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Header(title: 'Live Translator', subtitle: 'Text, voice, and camera-ready travel translation.'),
+          const SizedBox(height: 18),
+          GlassCard(
+            child: Row(
+              children: [
+                Expanded(child: _LanguageDrop(value: from, list: languages, onChanged: (v) => setState(() => from = v))),
+                IconButton(
+                  tooltip: 'Swap languages',
+                  onPressed: () => setState(() {
+                    final old = from;
+                    from = to;
+                    to = old;
+                  }),
+                  icon: const Icon(Icons.swap_horiz_rounded, color: AppColors.accent),
                 ),
-              ),
-              padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.person, size: 40, color: Colors.white),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Travel Enthusiast',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'traveler@exploremate.com',
-                            style: TextStyle(
-                              color: Colors.blue.shade100,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildStat('12', 'Trips'),
-                        Container(width: 1, height: 40, color: Colors.white.withOpacity(0.2)),
-                        _buildStat('28', 'Places'),
-                        Container(width: 1, height: 40, color: Colors.white.withOpacity(0.2)),
-                        _buildStat('5', 'Reviews'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                Expanded(child: _LanguageDrop(value: to, list: languages, onChanged: (v) => setState(() => to = v))),
+              ],
             ),
-            
-            // Menu Items
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
+          ),
+          const SizedBox(height: 14),
+          GlassCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Say or type something', style: TextStyle(fontWeight: FontWeight.w900)),
+                const SizedBox(height: 12),
+                const TextField(
+                  minLines: 4,
+                  maxLines: 5,
+                  decoration: InputDecoration(hintText: 'Where is the nearest metro station?'),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(child: GradientButton(label: 'Translate', icon: Icons.translate_rounded, onPressed: () {})),
+                    const SizedBox(width: 10),
+                    IconButton.filledTonal(onPressed: () {}, icon: const Icon(Icons.mic_rounded)),
                   ],
                 ),
-                child: Column(
-                  children: menuItems.map((item) {
-                    final isDanger = item['variant'] == 'danger';
-                    final color = isDanger ? Colors.red.shade600 : Colors.black87;
-                    return Column(
-                      children: [
-                        ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                          leading: Icon(item['icon'] as IconData, color: color),
-                          title: Text(
-                            item['label'] as String,
-                            style: TextStyle(color: color, fontWeight: FontWeight.w500),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (item['count'] != null)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    '${item['count']}',
-                                    style: TextStyle(color: Colors.blue.shade600, fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              const SizedBox(width: 8),
-                              Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                            ],
-                          ),
-                          onTap: () {},
-                        ),
-                        if (item != menuItems.last)
-                          Divider(height: 1, indent: 20, endIndent: 20, color: Colors.grey.shade100),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
+              ],
             ),
-
-            // Saved Trips
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          const SizedBox(height: 14),
+          GlassCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Hindi output', style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 10),
+                const Text('Sabse najdeeki metro station kahan hai?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    IconButton.filledTonal(onPressed: () {}, icon: const Icon(Icons.volume_up_rounded)),
+                    IconButton.filledTonal(onPressed: () {}, icon: const Icon(Icons.copy_rounded)),
+                    const Spacer(),
+                    const SkeletonLine(width: 92),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SectionHeader(title: 'Camera Preview'),
+          GlassCard(
+            padding: EdgeInsets.zero,
+            child: Container(
+              height: 210,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(colors: [AppColors.cardBg, AppColors.primary]),
+              ),
+              child: Stack(
                 children: [
-                  const Text(
-                    'Upcoming Trips',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 12),
-                  ...savedTrips.map((trip) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 96,
-                            height: 96,
-                            child: Image.network(
-                              trip['image'] as String,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(color: Colors.grey.shade300),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    trip['name'] as String,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    trip['date'] as String,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                          ),
-                        ],
+                  Center(child: Icon(Icons.document_scanner_rounded, color: adaptiveFaintColor(context), size: 74)),
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(border: Border.all(color: AppColors.accent), borderRadius: BorderRadius.circular(18)),
                       ),
                     ),
-                  )),
-                  const SizedBox(height: 24),
+                  ),
+                  const Positioned(
+                    left: 28,
+                    right: 28,
+                    bottom: 28,
+                    child: Text('Point at menus, boards, and tickets for instant overlay translation.', textAlign: TextAlign.center),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildStat(String number, String label) {
+class _Header extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  const _Header({required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          number,
-          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        Text(
-          label,
-          style: TextStyle(color: Colors.blue.shade100, fontSize: 12),
-        ),
+        Text(title, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 6),
+        Text(subtitle, style: TextStyle(color: adaptiveMutedColor(context, .62))),
       ],
+    );
+  }
+}
+
+class _LanguageDrop extends StatelessWidget {
+  final String value;
+  final List<String> list;
+  final ValueChanged<String> onChanged;
+  const _LanguageDrop({required this.value, required this.list, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: value,
+        isExpanded: true,
+        dropdownColor: AppColors.cardBg,
+        items: list
+            .map(
+              (l) => DropdownMenuItem(
+                value: l,
+                child: Text(l, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+            )
+            .toList(),
+        onChanged: (v) {
+          if (v != null) onChanged(v);
+        },
+      ),
     );
   }
 }
